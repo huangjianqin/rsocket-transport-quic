@@ -53,14 +53,16 @@ public final class QuicClientTransport implements ClientTransport {
                 .connectNow();
         final QuicDuplexConnection duplexConnection = new QuicDuplexConnection();
         quicConnection.createStream(QuicStreamType.BIDIRECTIONAL, (in, out) -> {
-            //quic stream创建成功后的回调
-            in.withConnection(connection -> {
-                //暴露底层connection, 同时执行自定义逻辑
-                duplexConnection.setConnection(connection);
-                duplexConnection.setInbound(in);
-            });
-            return duplexConnection.prepareOutbound(out);
-        }).block();
+                    //quic stream创建成功后的回调
+                    in.withConnection(connection -> {
+                        //暴露底层connection, 同时执行自定义逻辑
+                        duplexConnection.setConnection(connection);
+                        duplexConnection.setInbound(in);
+                    });
+                    return duplexConnection.prepareOutbound(out);
+                })
+                //createStream成功, 会触发Mono的OnComplete, 不会触发OnNext, 所以不能包含sub operator
+                .block();
         return Mono.just(duplexConnection);
     }
 
